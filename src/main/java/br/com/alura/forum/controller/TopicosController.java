@@ -2,8 +2,10 @@ package br.com.alura.forum.controller;
 
 import java.net.URI;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -46,10 +48,14 @@ public class TopicosController {
 	}
 	
 	@GetMapping("/{id}")
-	public DetalhesDoTopicoDTO detalhar(@PathVariable Long id) {
+	public ResponseEntity<DetalhesDoTopicoDTO> detalhar(@PathVariable Long id) {
 	    
-		Topico topico = topicoRepository.getReferenceById(id);
-	    return new DetalhesDoTopicoDTO(topico);
+	    Optional<Topico> topico = topicoRepository.findById(id);
+        if (topico.isPresent()) {
+        	return new ResponseEntity<DetalhesDoTopicoDTO>(new DetalhesDoTopicoDTO(topico.get()), HttpStatus.OK);
+        }
+        
+        return ResponseEntity.notFound().build();
 	}
 	
 	@PostMapping
@@ -67,15 +73,26 @@ public class TopicosController {
 	@Transactional
 	public ResponseEntity<TopicoDTO> atualizar(@PathVariable Long id, AtualizacaoTopicoForm form) {
 		
-		Topico topico = form.atualizar(id, topicoRepository);
-		return ResponseEntity.ok(new TopicoDTO(topico));
+		Optional<Topico> optional = topicoRepository.findById(id);
+
+		if (optional.isPresent()) {
+			Topico topico = form.atualizar(id, topicoRepository);
+			ResponseEntity.ok(new TopicoDTO(topico));
+		}
+		return ResponseEntity.notFound().build();
 	}
 	
 	@DeleteMapping("/{id}")
 	@Transactional
 	public ResponseEntity<?> remover(@PathVariable Long id) {
-	
-		topicoRepository.deleteById(id);		
-		return ResponseEntity.ok().build();
+
+	    Optional<Topico> topico = topicoRepository.findById(id);
+
+	    if (topico.isPresent()) {
+			topicoRepository.deleteById(id);		
+			return ResponseEntity.ok().build();
+        }
+        
+		return ResponseEntity.notFound().build();
 	}	
 }
