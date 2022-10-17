@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -44,7 +45,15 @@ public class TopicosController {
 		}
 	}
 	
+	@GetMapping("/{id}")
+	public DetalhesDoTopicoDTO detalhar(@PathVariable Long id) {
+	    
+		Topico topico = topicoRepository.getReferenceById(id);
+	    return new DetalhesDoTopicoDTO(topico);
+	}
+	
 	@PostMapping
+	@Transactional
 	public ResponseEntity<TopicoDTO> cadastrar(TopicoForm form, UriComponentsBuilder  uriBuilder) {
 		
 		Topico topico = form.converter(cursoRepository);
@@ -52,13 +61,6 @@ public class TopicosController {
 		
 		URI uri = uriBuilder.path("/topicos/{id}").buildAndExpand(topico.getId()).toUri();
 		return ResponseEntity.created(uri).body(new TopicoDTO(topico));
-	}
-	
-	@GetMapping("/{id}")
-	public DetalhesDoTopicoDTO detalhar(@PathVariable Long id) {
-	    
-		Topico topico = topicoRepository.getReferenceById(id);
-	    return new DetalhesDoTopicoDTO(topico);
 	}
 
 	@PutMapping("/{id}")
@@ -68,4 +70,12 @@ public class TopicosController {
 		Topico topico = form.atualizar(id, topicoRepository);
 		return ResponseEntity.ok(new TopicoDTO(topico));
 	}
+	
+	@DeleteMapping("/{id}")
+	@Transactional
+	public ResponseEntity<?> remover(@PathVariable Long id) {
+	
+		topicoRepository.deleteById(id);		
+		return ResponseEntity.ok().build();
+	}	
 }
